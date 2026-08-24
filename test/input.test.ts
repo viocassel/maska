@@ -2164,6 +2164,26 @@ describe('Cursor position with invisible literals (RTL date)', () => {
     expect(input).toHaveValue('27\u200F/11\u200F/1990')
     expect(input.selectionStart).toBe(12)
   })
+
+  test('backspace steps through multi-char literals', async () => {
+    await user.type(input, '15082008')
+
+    await user.type(input, '{backspace}{backspace}{backspace}{backspace}')
+    expect(input).toHaveValue('15\u200F/08\u200F/')
+    expect(input.selectionStart).toBe(8)
+
+    await user.type(input, '{backspace}{backspace}')
+    expect(input).toHaveValue('15\u200F/08')
+    expect(input.selectionStart).toBe(6)
+  })
+
+  test('backspace inside a segment', async () => {
+    await user.type(input, '15082008')
+
+    await user.type(input, '{backspace}', { initialSelectionStart: 9 })
+    expect(input).toHaveValue('15\u200F/08\u200F/008')
+    expect(input.selectionStart).toBe(8)
+  })
 })
 
 describe('Number mask', () => {

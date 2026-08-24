@@ -118,9 +118,25 @@ export class MaskInput {
     let posFixed = pos
 
     if (leftPart !== leftPartNew) {
-      posFixed += isDelete
-        ? valueNew.length - value.length
-        : unmasked.length - unmaskedNew.length
+      if (isDelete) {
+        posFixed += valueNew.length - value.length
+      } else if (unmasked.length === 0) {
+        posFixed = 0
+      } else {
+        // place cursor right after the same count of unmasked characters:
+        // multi-char literal sequences can push it further than the length
+        // difference of the left parts
+        posFixed = valueNew.length
+
+        for (let i = 1; i <= valueNew.length; i++) {
+          const unmaskedPrefix = this.processInput(input, valueNew.slice(0, i))?.unmasked ?? ''
+
+          if (unmaskedPrefix.length >= unmasked.length) {
+            posFixed = i
+            break
+          }
+        }
+      }
     }
 
     input.setSelectionRange(posFixed, posFixed)

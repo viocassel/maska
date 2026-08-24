@@ -2116,6 +2116,56 @@ describe('Cursor position eager mask', () => {
   })
 })
 
+describe('Cursor position with multi-char literals', () => {
+  beforeAll(() => {
+    input = prepareInput({ mask: '(###) ###-####' })
+  })
+
+  afterEach(async () => {
+    await user.clear(input)
+  })
+
+  test('type into filled input from the start', async () => {
+    await user.type(input, '2025550123')
+    expect(input).toHaveValue('(202) 555-0123')
+
+    await user.type(input, '9876', { initialSelectionStart: 0 })
+    expect(input).toHaveValue('(987) 620-2555')
+    expect(input.selectionStart).toBe(7)
+  })
+
+  test('full retype from the start replaces the value', async () => {
+    await user.type(input, '2025550123')
+    await user.type(input, '9876543210', { initialSelectionStart: 0 })
+    expect(input).toHaveValue('(987) 654-3210')
+  })
+})
+
+describe('Cursor position with invisible literals (RTL date)', () => {
+  beforeAll(() => {
+    input = prepareInput({ mask: '##\u200F/##\u200F/####' })
+  })
+
+  afterEach(async () => {
+    await user.clear(input)
+  })
+
+  test('type date from scratch', async () => {
+    await user.type(input, '15082008')
+    expect(input).toHaveValue('15\u200F/08\u200F/2008')
+    expect(input.selectionStart).toBe(12)
+  })
+
+  test('retype date over filled value from the start', async () => {
+    await user.type(input, '25121995')
+    expect(input).toHaveValue('25\u200F/12\u200F/1995')
+
+    await user.type(input, '27111990', { initialSelectionStart: 0 })
+    expect(input).toHaveValue('27\u200F/11\u200F/1990')
+    expect(input.selectionStart).toBe(12)
+  })
+})
+
 describe('Number mask', () => {
   test('default number', async () => {
     document.body.innerHTML = `<input id="input" data-maska-number>`
